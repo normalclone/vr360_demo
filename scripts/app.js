@@ -9,6 +9,8 @@ const stereoContainer = document.getElementById("stereoContainer");
 const viewerElement = document.getElementById("viewer");
 const viewerLeftElement = document.getElementById("viewerLeft");
 const viewerRightElement = document.getElementById("viewerRight");
+const layoutRoot = document.querySelector(".layout");
+const orientationOverlay = document.getElementById("orientationOverlay");
 const fullscreenButtons = [
   document.getElementById("fullscreenToggle"),
   document.getElementById("fullscreenToggleVrLeft"),
@@ -111,6 +113,37 @@ function unlockMobileOrientation() {
     console.warn("Unable to unlock orientation", error);
   }
   orientationLocked = false;
+}
+
+function shouldForceLandscapeOrientation() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+  if (typeof window.matchMedia === "function") {
+    try {
+      return window.matchMedia("(max-width: 1024px) and (orientation: portrait)").matches;
+    } catch (error) {
+      // Fallback below
+    }
+  }
+  const width = window.innerWidth || 0;
+  const height = window.innerHeight || 0;
+  return height > width && width <= 1024;
+}
+
+function updateOrientationLockState() {
+  if (!orientationOverlay || !layoutRoot) {
+    return;
+  }
+  const requiresLandscape = shouldForceLandscapeOrientation();
+  orientationOverlay.classList.toggle("visible", requiresLandscape);
+  orientationOverlay.setAttribute("aria-hidden", String(!requiresLandscape));
+  layoutRoot.classList.toggle("orientation-hidden", requiresLandscape);
+  layoutRoot.setAttribute("aria-hidden", String(requiresLandscape));
+  document.documentElement.classList.toggle("orientation-locked", requiresLandscape);
+  if (!requiresLandscape) {
+    refreshViewerLayout();
+  }
 }
 const mapMetrics = {
   padding: 28,
@@ -1260,9 +1293,12 @@ function init() {
   window.addEventListener("resize", () => {
     updateMapMetrics();
     scheduleMapDraw();
+    updateOrientationLockState();
   });
+  window.addEventListener("orientationchange", updateOrientationLockState);
   document.addEventListener("fullscreenchange", handleFullscreenChange);
 
+  updateOrientationLockState();
   switchScene(SCENES[0].id, { instant: true });
   controlMode = CONTROL_MODES.MOUSE;
   updateVrDisplayState();

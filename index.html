@@ -10,6 +10,7 @@
 <body>
   <div class="layout">
     <aside id="map-panel">
+
       <header class="panel-header">
         <h1>Custom Street View</h1>
         <p class="panel-subtitle">Select a point on the map or switch to 360&deg;/VR mode to move around.</p>
@@ -51,6 +52,13 @@
       </div>
       <div id="sceneInfo" aria-live="polite"></div>
     </main>
+  </div>
+  <div id="orientationOverlay" class="orientation-overlay" aria-hidden="true" role="status">
+    <div class="orientation-overlay__content">
+      <i class="fa-solid fa-rotate orientation-overlay__icon" aria-hidden="true"></i>
+      <p class="orientation-overlay__title">Vui lòng xoay ngang thiết bị</p>
+      <p class="orientation-overlay__text">Trải nghiệm 360° hoạt động tốt nhất ở chế độ landscape.</p>
+    </div>
   </div>
 
   <script src="libs/marzipano.js"></script>
