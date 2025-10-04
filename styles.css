@@ -423,3 +423,18 @@ body {
     opacity: 0;
   }
 }
+html.pseudo-fullscreen,
+body.pseudo-fullscreen {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+#viewerWrapper.pseudo-fullscreen {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  z-index: 9999;
+}

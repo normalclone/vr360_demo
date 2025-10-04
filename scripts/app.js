@@ -317,6 +317,35 @@ function triggerViewMotionEffect(duration = 650) {
   if (!viewerWrapper) {
     return;
   }
+
+function isNativeFullscreenActive() {
+  return Boolean(
+    document.fullscreenElement ||
+    document.webkitFullscreenElement ||
+    document.msFullscreenElement ||
+    document.mozFullScreenElement
+  );
+}
+
+function isPseudoFullscreenActive() {
+  return document.documentElement.classList.contains("pseudo-fullscreen");
+}
+
+function enablePseudoFullscreen() {
+  document.documentElement.classList.add("pseudo-fullscreen");
+  document.body.classList.add("pseudo-fullscreen");
+  viewerWrapper.classList.add("pseudo-fullscreen");
+  fullscreenActive = true;
+  updateFullscreenButtons();
+  refreshViewerLayout();
+}
+
+function disablePseudoFullscreen() {
+  document.documentElement.classList.remove("pseudo-fullscreen");
+  document.body.classList.remove("pseudo-fullscreen");
+  viewerWrapper.classList.remove("pseudo-fullscreen");
+}
+
   if (viewMotionTimeout) {
     clearTimeout(viewMotionTimeout);
     viewMotionTimeout = null;
@@ -908,23 +937,52 @@ function syncMiniMapClones() {
 
 async function toggleFullscreen() {
   const element = viewerWrapper;
-  if (!document.fullscreenElement) {
+
+  const enterFullscreen = () => {
+    if (element.requestFullscreen) return element.requestFullscreen();
+    if (element.webkitRequestFullscreen) return element.webkitRequestFullscreen();
+    if (element.msRequestFullscreen) return element.msRequestFullscreen();
+    if (element.mozRequestFullScreen) return element.mozRequestFullScreen();
+    return Promise.reject(new Error("Fullscreen API không khả dụng."));
+  };
+
+  const exitFullscreen = () => {
+    if (document.exitFullscreen) return document.exitFullscreen();
+    if (document.webkitExitFullscreen) return document.webkitExitFullscreen();
+    if (document.msExitFullscreen) return document.msExitFullscreen();
+    if (document.mozCancelFullScreen) return document.mozCancelFullScreen();
+    return Promise.reject(new Error("Không thể thoát fullscreen."));
+  };
+
+  const nativeActive = isNativeFullscreenActive();
+  const pseudoActive = isPseudoFullscreenActive();
+
+  if (nativeActive || pseudoActive) {
     try {
-      await element.requestFullscreen();
-      fullscreenActive = true;
+      if (nativeActive) {
+        await exitFullscreen();
+      }
     } catch (error) {
-      console.error("Unable to enter fullscreen", error);
+      console.error("Không thể thoát fullscreen", error);
     }
-  } else {
-    try {
-      await document.exitFullscreen();
-      fullscreenActive = false;
-    } catch (error) {
-      console.error("Unable to exit fullscreen", error);
+    if (isPseudoFullscreenActive()) {
+      disablePseudoFullscreen();
     }
+    fullscreenActive = false;
+    updateFullscreenButtons();
+    refreshViewerLayout();
+    return;
   }
-  updateFullscreenButtons();
-  refreshViewerLayout();
+
+  try {
+    await enterFullscreen();
+    fullscreenActive = true;
+    updateFullscreenButtons();
+    refreshViewerLayout();
+  } catch (error) {
+    console.warn("Fallback pseudo fullscreen", error);
+    enablePseudoFullscreen();
+  }
 }
 
 function updateFullscreenButtons() {
@@ -939,11 +997,7 @@ function updateFullscreenButtons() {
   refreshViewerLayout();
 }
 
-function handleFullscreenChange() {
-  fullscreenActive = Boolean(document.fullscreenElement);
-  updateFullscreenButtons();
-  refreshViewerLayout();
-}
+function handleFullscreenChange() {\n  const nativeActive = isNativeFullscreenActive();\n  fullscreenActive = nativeActive;\n  if (!nativeActive && isPseudoFullscreenActive()) {\n    disablePseudoFullscreen();\n  }\n  updateFullscreenButtons();\n  refreshViewerLayout();\n}
 
 function init() {
   updateMapMetrics();
@@ -977,6 +1031,7 @@ function init() {
 }
 
 init();
+
 
 
 
