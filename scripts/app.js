@@ -997,7 +997,16 @@ function updateFullscreenButtons() {
   refreshViewerLayout();
 }
 
-function handleFullscreenChange() {\n  const nativeActive = isNativeFullscreenActive();\n  fullscreenActive = nativeActive;\n  if (!nativeActive && isPseudoFullscreenActive()) {\n    disablePseudoFullscreen();\n  }\n  updateFullscreenButtons();\n  refreshViewerLayout();\n}
+function handleFullscreenChange() {
+  const nativeActive = isNativeFullscreenActive();
+  fullscreenActive = nativeActive;
+  if (!nativeActive && isPseudoFullscreenActive()) {
+    disablePseudoFullscreen();
+  }
+  updateFullscreenButtons();
+  refreshViewerLayout();
+}
+
 
 function init() {
   updateMapMetrics();
@@ -1031,6 +1040,7 @@ function init() {
 }
 
 init();
+
 
 
 
