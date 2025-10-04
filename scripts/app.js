@@ -57,6 +57,61 @@ const CONTROL_MODES = {
   VR: "vr"
 };
 
+const MOBILE_FULLSCREEN_BREAKPOINT = 820;
+
+function isMobileLayout() {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+    return false;
+  }
+  try {
+    return window.matchMedia("(max-width: " + MOBILE_FULLSCREEN_BREAKPOINT + "px)").matches;
+  } catch (error) {
+    const width = typeof window !== "undefined" ? window.innerWidth || 0 : 0;
+    return width <= MOBILE_FULLSCREEN_BREAKPOINT;
+  }
+}
+
+let orientationLocked = false;
+
+async function lockMobileLandscapeOrientation() {
+  if (typeof window === "undefined" || typeof screen === "undefined") {
+    return false;
+  }
+  if (!isMobileLayout()) {
+    return false;
+  }
+  const orientation = screen.orientation;
+  if (orientation && typeof orientation.lock === "function") {
+    try {
+      await orientation.lock("landscape");
+      orientationLocked = true;
+      return true;
+    } catch (error) {
+      console.warn("Unable to lock orientation", error);
+    }
+  }
+  return false;
+}
+
+function unlockMobileOrientation() {
+  if (typeof window === "undefined" || typeof screen === "undefined") {
+    orientationLocked = false;
+    return;
+  }
+  const orientation = screen.orientation;
+  if (!orientation || typeof orientation.unlock !== "function") {
+    orientationLocked = false;
+    return;
+  }
+  try {
+    if (orientationLocked) {
+      orientation.unlock();
+    }
+  } catch (error) {
+    console.warn("Unable to unlock orientation", error);
+  }
+  orientationLocked = false;
+}
 const mapMetrics = {
   padding: 28,
   width: mapCanvas.width,
@@ -964,11 +1019,12 @@ async function toggleFullscreen() {
         await exitFullscreen();
       }
     } catch (error) {
-      console.error("Không thể thoát fullscreen", error);
+      console.error("Unable to exit fullscreen", error);
     }
     if (isPseudoFullscreenActive()) {
       disablePseudoFullscreen();
     }
+    unlockMobileOrientation();
     fullscreenActive = false;
     updateFullscreenButtons();
     refreshViewerLayout();
@@ -978,6 +1034,7 @@ async function toggleFullscreen() {
   try {
     await enterFullscreen();
     fullscreenActive = true;
+    await lockMobileLandscapeOrientation();
     updateFullscreenButtons();
     refreshViewerLayout();
   } catch (error) {
@@ -998,17 +1055,23 @@ function updateFullscreenButtons() {
   refreshViewerLayout();
 }
 
-function handleFullscreenChange() {
+async function handleFullscreenChange() {
   const nativeActive = isNativeFullscreenActive();
-  fullscreenActive = nativeActive;
-  if (!nativeActive && isPseudoFullscreenActive()) {
-    disablePseudoFullscreen();
+  if (nativeActive) {
+    fullscreenActive = true;
+    if (!orientationLocked) {
+      await lockMobileLandscapeOrientation();
+    }
+  } else {
+    fullscreenActive = false;
+    unlockMobileOrientation();
+    if (isPseudoFullscreenActive()) {
+      disablePseudoFullscreen();
+    }
   }
   updateFullscreenButtons();
   refreshViewerLayout();
 }
-
-
 function init() {
   updateMapMetrics();
   populateLocationList();
@@ -1041,32 +1104,3 @@ function init() {
 }
 
 init();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
