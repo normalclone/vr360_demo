@@ -117,8 +117,13 @@ const mapMetrics = {
   width: mapCanvas.width,
   height: mapCanvas.height,
   scaleX: 1,
-  scaleY: 1
+  scaleY: 1,
+  deviceRatio: typeof window !== "undefined" && Number.isFinite(window.devicePixelRatio) ? window.devicePixelRatio : 1
 };
+
+function invalidateMapBaseCache() {
+  mapBaseCacheCanvas = null;
+}
 
 const MAP_RANGE = { width: 100, height: 100 };
 const MAP_PATH = [
@@ -193,8 +198,26 @@ const SCENES = [
 
 const viewer = new Viewer(viewerElement, { useDevicePixelRatio: true });
 const stereoViewers = {
-  left: new Viewer(viewerLeftElement, { useDevicePixelRatio: true }),
-  right: new Viewer(viewerRightElement, { useDevicePixelRatio: true })
+  left: null,
+  right: null
+};
+const registeredViewListeners = new WeakSet();
+
+const DEFAULT_LEVELS = [
+  { width: 512 },
+  { width: 1024 },
+  { width: 2048 }
+];
+const DEFAULT_MAX_RESOLUTION = 2048;
+
+let mapBaseCacheCanvas = null;
+let mapBaseCacheMetrics = {
+  width: 0,
+  height: 0,
+  padding: 0,
+  scaleX: 0,
+  scaleY: 0,
+  deviceRatio: 1
 };
 
 const controls = viewer.controls();
@@ -231,6 +254,8 @@ function updateMapMetrics() {
   mapMetrics.height = displayHeight;
   mapMetrics.scaleX = (displayWidth - mapMetrics.padding * 2) / MAP_RANGE.width;
   mapMetrics.scaleY = (displayHeight - mapMetrics.padding * 2) / MAP_RANGE.height;
+  mapMetrics.deviceRatio = ratio;
+  invalidateMapBaseCache();
 }
 
 function mapToCanvas(point) {
@@ -426,31 +451,58 @@ function drawMap() {
 
 
 function drawMapBase() {
-  mapCtx.save();
-  const innerWidth = mapMetrics.width - mapMetrics.padding * 2;
-  const innerHeight = mapMetrics.height - mapMetrics.padding * 2;
-  mapCtx.fillStyle = "rgba(14, 18, 32, 0.65)";
-  mapCtx.fillRect(mapMetrics.padding, mapMetrics.padding, innerWidth, innerHeight);
+  const metricsChanged =
+    !mapBaseCacheCanvas ||
+    mapBaseCacheMetrics.width !== mapMetrics.width ||
+    mapBaseCacheMetrics.height !== mapMetrics.height ||
+    mapBaseCacheMetrics.padding !== mapMetrics.padding ||
+    mapBaseCacheMetrics.scaleX !== mapMetrics.scaleX ||
+    mapBaseCacheMetrics.scaleY !== mapMetrics.scaleY ||
+    mapBaseCacheMetrics.deviceRatio !== mapMetrics.deviceRatio;
 
-  mapCtx.strokeStyle = "rgba(255, 255, 255, 0.05)";
-  mapCtx.lineWidth = 1;
-  const step = 10;
-  for (let x = 0; x <= MAP_RANGE.width; x += step) {
-    const pos = mapMetrics.padding + x * mapMetrics.scaleX;
-    mapCtx.beginPath();
-    mapCtx.moveTo(pos, mapMetrics.padding);
-    mapCtx.lineTo(pos, mapMetrics.height - mapMetrics.padding);
-    mapCtx.stroke();
-  }
-  for (let y = 0; y <= MAP_RANGE.height; y += step) {
-    const pos = mapMetrics.padding + y * mapMetrics.scaleY;
-    mapCtx.beginPath();
-    mapCtx.moveTo(mapMetrics.padding, pos);
-    mapCtx.lineTo(mapMetrics.width - mapMetrics.padding, pos);
-    mapCtx.stroke();
+  if (metricsChanged) {
+    mapBaseCacheCanvas = document.createElement("canvas");
+    mapBaseCacheCanvas.width = Math.max(1, Math.round(mapMetrics.width * mapMetrics.deviceRatio));
+    mapBaseCacheCanvas.height = Math.max(1, Math.round(mapMetrics.height * mapMetrics.deviceRatio));
+    const cacheCtx = mapBaseCacheCanvas.getContext("2d");
+    if (cacheCtx) {
+      cacheCtx.scale(mapMetrics.deviceRatio, mapMetrics.deviceRatio);
+      const innerWidth = mapMetrics.width - mapMetrics.padding * 2;
+      const innerHeight = mapMetrics.height - mapMetrics.padding * 2;
+      cacheCtx.fillStyle = "rgba(14, 18, 32, 0.65)";
+      cacheCtx.fillRect(mapMetrics.padding, mapMetrics.padding, innerWidth, innerHeight);
+
+      cacheCtx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+      cacheCtx.lineWidth = 1;
+      const step = 10;
+      for (let x = 0; x <= MAP_RANGE.width; x += step) {
+        const pos = mapMetrics.padding + x * mapMetrics.scaleX;
+        cacheCtx.beginPath();
+        cacheCtx.moveTo(pos, mapMetrics.padding);
+        cacheCtx.lineTo(pos, mapMetrics.height - mapMetrics.padding);
+        cacheCtx.stroke();
+      }
+      for (let y = 0; y <= MAP_RANGE.height; y += step) {
+        const pos = mapMetrics.padding + y * mapMetrics.scaleY;
+        cacheCtx.beginPath();
+        cacheCtx.moveTo(mapMetrics.padding, pos);
+        cacheCtx.lineTo(mapMetrics.width - mapMetrics.padding, pos);
+        cacheCtx.stroke();
+      }
+    }
+    mapBaseCacheMetrics = {
+      width: mapMetrics.width,
+      height: mapMetrics.height,
+      padding: mapMetrics.padding,
+      scaleX: mapMetrics.scaleX,
+      scaleY: mapMetrics.scaleY,
+      deviceRatio: mapMetrics.deviceRatio
+    };
   }
 
-  mapCtx.restore();
+  if (mapBaseCacheCanvas) {
+    mapCtx.drawImage(mapBaseCacheCanvas, 0, 0, mapMetrics.width, mapMetrics.height);
+  }
 }
 
 function drawPath() {
@@ -588,7 +640,7 @@ function synchronizeViewsFrom(originView) {
 
   const { view, stereo } = activeState.scene;
   const sourceView = originView || view;
-  const params = Object.assign({}, sourceView.parameters());
+  const params = typeof sourceView.parameters === "function" ? Object.assign({}, sourceView.parameters()) : {};
 
   if (!Number.isFinite(params.yaw) || !Number.isFinite(params.pitch) || !Number.isFinite(params.fov)) {
     return;
@@ -597,17 +649,21 @@ function synchronizeViewsFrom(originView) {
     return;
   }
 
+  const targets = [view];
+  if (stereo.left && stereo.left.view) {
+    targets.push(stereo.left.view);
+  }
+  if (stereo.right && stereo.right.view) {
+    targets.push(stereo.right.view);
+  }
+
   isSynchronizingViews = true;
   try {
-    if (sourceView !== view) {
-      view.setParameters(Object.assign({}, params));
-    }
-    if (sourceView !== stereo.left.view) {
-      stereo.left.view.setParameters(Object.assign({}, params));
-    }
-    if (sourceView !== stereo.right.view) {
-      stereo.right.view.setParameters(Object.assign({}, params));
-    }
+    targets.forEach((targetView) => {
+      if (targetView !== sourceView && typeof targetView.setParameters === "function") {
+        targetView.setParameters(Object.assign({}, params));
+      }
+    });
   } finally {
     isSynchronizingViews = false;
   }
@@ -615,25 +671,137 @@ function synchronizeViewsFrom(originView) {
   updateActiveStateFromParams(params);
 }
 
-function registerViewSynchronizers(entry) {
-  const { view, stereo } = entry;
-  const views = [view, stereo.left.view, stereo.right.view];
+function ensureStereoViewers() {
+  if (!stereoViewers.left && viewerLeftElement) {
+    stereoViewers.left = new Viewer(viewerLeftElement, { useDevicePixelRatio: true });
+  }
+  if (!stereoViewers.right && viewerRightElement) {
+    stereoViewers.right = new Viewer(viewerRightElement, { useDevicePixelRatio: true });
+  }
+  return stereoViewers;
+}
 
-  views.forEach((viewInstance) => {
-    viewInstance.addEventListener("change", () => {
-      if (!activeState.scene || activeState.scene.data.id !== entry.data.id) {
-        return;
-      }
-      if (isSynchronizingViews) {
-        return;
-      }
-      synchronizeViewsFrom(viewInstance);
-    });
+function buildStereoScene(viewerInstance, sceneConfig) {
+  if (!viewerInstance) {
+    return null;
+  }
+  const limiter = RectilinearView.limit.traditional(DEFAULT_MAX_RESOLUTION, util.degToRad(110));
+  const geometry = new EquirectGeometry(DEFAULT_LEVELS);
+  const view = new RectilinearView(sceneConfig.initialView, limiter);
+  const scene = viewerInstance.createScene({
+    source: ImageUrlSource.fromString(sceneConfig.image),
+    geometry,
+    view,
+    pinFirstLevel: false
   });
+  return { scene, view };
+}
+
+function registerViewChangeListener(entry, viewInstance) {
+  if (!viewInstance || registeredViewListeners.has(viewInstance)) {
+    return;
+  }
+  viewInstance.addEventListener("change", () => {
+    if (!activeState.scene || activeState.scene.data.id !== entry.data.id) {
+      return;
+    }
+    if (isSynchronizingViews) {
+      return;
+    }
+    synchronizeViewsFrom(viewInstance);
+  });
+  registeredViewListeners.add(viewInstance);
+}
+
+function ensureStereoResourcesForEntry(entry) {
+  if (!entry || !entry.data) {
+    return;
+  }
+  const viewers = ensureStereoViewers();
+  let createdLeft = false;
+  let createdRight = false;
+
+  if (!entry.stereo.left) {
+    const stereoLeft = buildStereoScene(viewers.left, entry.data);
+    if (stereoLeft) {
+      entry.stereo.left = stereoLeft;
+      registerViewChangeListener(entry, stereoLeft.view);
+      createdLeft = true;
+    }
+  }
+  if (!entry.stereo.right) {
+    const stereoRight = buildStereoScene(viewers.right, entry.data);
+    if (stereoRight) {
+      entry.stereo.right = stereoRight;
+      registerViewChangeListener(entry, stereoRight.view);
+      createdRight = true;
+    }
+  }
+
+  ensureStereoHotspots(entry);
+
+  if (createdLeft && entry.stereo.left && entry.stereo.left.scene) {
+    entry.stereo.left.scene.switchTo({ transitionDuration: 0 });
+  }
+  if (createdRight && entry.stereo.right && entry.stereo.right.scene) {
+    entry.stereo.right.scene.switchTo({ transitionDuration: 0 });
+  }
+
+  if (activeState.scene && activeState.scene.data.id === entry.data.id) {
+    synchronizeViewsFrom(entry.view);
+  }
+}
+
+function ensureStereoHotspots(entry) {
+  if (!entry || !entry.hotspotDescriptors) {
+    return;
+  }
+  const leftScene = entry.stereo.left ? entry.stereo.left.scene : null;
+  const rightScene = entry.stereo.right ? entry.stereo.right.scene : null;
+  if (!leftScene && !rightScene) {
+    return;
+  }
+  entry.hotspotDescriptors.forEach((descriptor) => {
+    if (!descriptor) {
+      return;
+    }
+    const targetConfig = findSceneConfig(descriptor.targetId);
+    if (!targetConfig) {
+      return;
+    }
+    descriptor.stereo = descriptor.stereo || {};
+    if (leftScene && !descriptor.stereo.left) {
+      descriptor.stereo.left = leftScene.hotspotContainer().createHotspot(
+        createHotspotElement(entry.data.id, targetConfig),
+        { yaw: descriptor.yaw, pitch: descriptor.pitch }
+      );
+    }
+    if (rightScene && !descriptor.stereo.right) {
+      descriptor.stereo.right = rightScene.hotspotContainer().createHotspot(
+        createHotspotElement(entry.data.id, targetConfig),
+        { yaw: descriptor.yaw, pitch: descriptor.pitch }
+      );
+    }
+  });
+}
+
+function findSceneConfig(sceneId) {
+  return SCENES.find((scene) => scene.id === sceneId);
 }
 
 function updateVrDisplayState() {
   const isVr = controlMode === CONTROL_MODES.VR;
+  if (isVr && activeState.scene) {
+    ensureStereoResourcesForEntry(activeState.scene);
+    const { stereo } = activeState.scene;
+    if (stereo.left && stereo.left.scene) {
+      stereo.left.scene.switchTo({ transitionDuration: 0 });
+    }
+    if (stereo.right && stereo.right.scene) {
+      stereo.right.scene.switchTo({ transitionDuration: 0 });
+    }
+  }
+
   viewerWrapper.classList.toggle("vr", isVr);
   stereoContainer.setAttribute("aria-hidden", String(!isVr));
   viewerSingleLayer.setAttribute("aria-hidden", String(isVr));
@@ -651,95 +819,71 @@ function updateVrDisplayState() {
 
 
 function createScene(sceneConfig) {
-  const levels = [
-    { width: 512 },
-    { width: 1024 },
-    { width: 2048 },
-    { width: 4096 }
-  ];
-  const limiter = RectilinearView.limit.traditional(4096, util.degToRad(120));
-  const source = ImageUrlSource.fromString(sceneConfig.image);
-  const geometry = new EquirectGeometry(levels);
+  const limiter = RectilinearView.limit.traditional(DEFAULT_MAX_RESOLUTION, util.degToRad(110));
+  const geometry = new EquirectGeometry(DEFAULT_LEVELS);
   const view = new RectilinearView(sceneConfig.initialView, limiter);
   const scene = viewer.createScene({
-    source,
+    source: ImageUrlSource.fromString(sceneConfig.image),
     geometry,
     view,
-    pinFirstLevel: true
+    pinFirstLevel: false
   });
-
-  const buildStereoScene = (viewerInstance) => {
-    const stereoSource = ImageUrlSource.fromString(sceneConfig.image);
-    const stereoGeometry = new EquirectGeometry(levels);
-    const stereoLimiter = RectilinearView.limit.traditional(4096, util.degToRad(120));
-    const stereoView = new RectilinearView(sceneConfig.initialView, stereoLimiter);
-    const stereoScene = viewerInstance.createScene({
-      source: stereoSource,
-      geometry: stereoGeometry,
-      view: stereoView,
-      pinFirstLevel: true
-    });
-    return { scene: stereoScene, view: stereoView };
-  };
-
-  const stereoLeft = buildStereoScene(stereoViewers.left);
-  const stereoRight = buildStereoScene(stereoViewers.right);
 
   const entry = {
     data: sceneConfig,
     scene,
     view,
     stereo: {
-      left: stereoLeft,
-      right: stereoRight
+      left: null,
+      right: null
     },
-    hotspots: []
+    hotspotDescriptors: []
   };
 
-  registerViewSynchronizers(entry);
+  registerViewChangeListener(entry, view);
   sceneMap.set(sceneConfig.id, entry);
 }
 
 function createHotspots() {
   SCENES.forEach((sceneConfig) => {
     const entry = sceneMap.get(sceneConfig.id);
-    const containers = [
-      entry.scene.hotspotContainer(),
-      entry.stereo.left.scene.hotspotContainer(),
-      entry.stereo.right.scene.hotspotContainer()
-    ];
-    entry.hotspots = [];
+    if (!entry) {
+      return;
+    }
+    const container = entry.scene.hotspotContainer();
+    entry.hotspotDescriptors = [];
 
     SCENES.forEach((targetConfig) => {
       if (targetConfig.id === sceneConfig.id) {
         return;
       }
       const yaw = normalizeAngle(bearingBetween(sceneConfig, targetConfig) - sceneConfig.northOffset);
-
-      const createElement = () => {
-        const element = document.createElement("div");
-        element.className = "hotspot";
-        element.dataset.label = targetConfig.title;
-        element.addEventListener("click", () => {
-          switchScene(targetConfig.id, { from: sceneConfig.id });
-        });
-        return element;
+      const descriptor = {
+        targetId: targetConfig.id,
+        yaw,
+        pitch: -0.05,
+        stereo: {}
       };
 
-      const mainHotspot = containers[0].createHotspot(createElement(), {
+      container.createHotspot(createHotspotElement(sceneConfig.id, targetConfig), {
         yaw,
-        pitch: -0.05
+        pitch: descriptor.pitch
       });
-      entry.hotspots.push({ targetId: targetConfig.id, hotspot: mainHotspot });
 
-      containers.slice(1).forEach((container) => {
-        container.createHotspot(createElement(), {
-          yaw,
-          pitch: -0.05
-        });
-      });
+      entry.hotspotDescriptors.push(descriptor);
     });
   });
+}
+
+function createHotspotElement(fromSceneId, targetConfig) {
+  const element = document.createElement("div");
+  element.className = "hotspot";
+  element.dataset.label = targetConfig.title;
+  element.setAttribute("aria-label", targetConfig.title);
+  element.addEventListener("click", () => {
+    switchScene(targetConfig.id, { from: fromSceneId });
+  });
+  return element;
 }
 
 function switchScene(sceneId, options = {}) {
@@ -754,9 +898,19 @@ function switchScene(sceneId, options = {}) {
 
   activeState.scene = targetEntry;
   const transitionDuration = options.instant ? 0 : 900;
+
+  if (controlMode === CONTROL_MODES.VR) {
+    ensureStereoResourcesForEntry(targetEntry);
+  }
+
   targetEntry.scene.switchTo({ transitionDuration });
-  targetEntry.stereo.left.scene.switchTo({ transitionDuration });
-  targetEntry.stereo.right.scene.switchTo({ transitionDuration });
+
+  if (targetEntry.stereo.left && targetEntry.stereo.left.scene) {
+    targetEntry.stereo.left.scene.switchTo({ transitionDuration });
+  }
+  if (targetEntry.stereo.right && targetEntry.stereo.right.scene) {
+    targetEntry.stereo.right.scene.switchTo({ transitionDuration });
+  }
 
   const params = Object.assign({}, targetEntry.data.initialView);
   if (options.from) {
@@ -888,6 +1042,9 @@ async function setControlMode(mode) {
   try {
     await enableSensor();
     controlMode = mode;
+    if (mode === CONTROL_MODES.VR && activeState.scene) {
+      ensureStereoResourcesForEntry(activeState.scene);
+    }
     updateVrDisplayState();
     if (mode === CONTROL_MODES.VR) {
       setControlStatus("VR Cardboard: sensors + split view");
@@ -978,12 +1135,21 @@ function handleMiniMapCloneClick(event, cloneCanvas) {
 }
 
 function syncMiniMapClones() {
+  const hasActiveClone = miniMapCloneEntries.some((entry) => entry.canvas && entry.canvas.parentElement);
+  if (!hasActiveClone) {
+    return;
+  }
+
   miniMapCloneEntries.forEach((entry) => {
     if (!entry.canvas || !entry.ctx || !entry.canvas.parentElement) {
       return;
     }
-    entry.canvas.width = mapCanvas.width;
-    entry.canvas.height = mapCanvas.height;
+    if (entry.canvas.width !== mapCanvas.width) {
+      entry.canvas.width = mapCanvas.width;
+    }
+    if (entry.canvas.height !== mapCanvas.height) {
+      entry.canvas.height = mapCanvas.height;
+    }
     entry.ctx.clearRect(0, 0, entry.canvas.width, entry.canvas.height);
     entry.ctx.drawImage(mapCanvas, 0, 0);
   });
@@ -1049,7 +1215,10 @@ function updateFullscreenButtons() {
       return;
     }
     button.classList.toggle("active", fullscreenActive);
-    button.textContent = fullscreenActive ? "Exit fullscreen" : "Fullscreen";
+    button.dataset.fullscreen = fullscreenActive ? "true" : "false";
+    const label = fullscreenActive ? "Exit fullscreen" : "Enter fullscreen";
+    button.setAttribute("aria-label", label);
+    button.setAttribute("title", label);
   });
   setMiniMapFullscreenState(fullscreenActive);
   refreshViewerLayout();

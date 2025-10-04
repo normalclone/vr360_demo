@@ -113,6 +113,34 @@ body {
   transition: all 120ms ease;
 }
 
+.control-button.icon-button {
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.control-button.icon-button .icon {
+  font-size: 1.1rem;
+  line-height: 1;
+  display: none;
+  pointer-events: none;
+}
+
+.control-button.icon-button .icon-enter {
+  display: block;
+}
+
+.control-button.icon-button[data-fullscreen="true"] .icon-enter {
+  display: none;
+}
+
+.control-button.icon-button[data-fullscreen="true"] .icon-exit {
+  display: block;
+}
+
 .control-button:hover {
   border-color: rgba(76, 194, 255, 0.6);
   color: var(--text-primary);
@@ -133,6 +161,10 @@ body {
   background: rgba(10, 14, 23, 0.85);
   border: 1px solid rgba(76, 194, 255, 0.25);
   color: var(--text-primary);
+}
+
+.control-button.floating.icon-button {
+  padding: 0;
 }
 
 .control-button.floating.standard-only {
