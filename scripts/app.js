@@ -317,6 +317,19 @@ function triggerViewMotionEffect(duration = 650) {
   if (!viewerWrapper) {
     return;
   }
+  if (viewMotionTimeout) {
+    clearTimeout(viewMotionTimeout);
+    viewMotionTimeout = null;
+  }
+  viewerWrapper.classList.remove("transitioning");
+  void viewerWrapper.offsetWidth;
+  viewerWrapper.classList.add("transitioning");
+  viewMotionTimeout = window.setTimeout(() => {
+    viewerWrapper.classList.remove("transitioning");
+    viewMotionTimeout = null;
+  }, duration);
+}
+
 
 function isNativeFullscreenActive() {
   return Boolean(
@@ -346,18 +359,6 @@ function disablePseudoFullscreen() {
   viewerWrapper.classList.remove("pseudo-fullscreen");
 }
 
-  if (viewMotionTimeout) {
-    clearTimeout(viewMotionTimeout);
-    viewMotionTimeout = null;
-  }
-  viewerWrapper.classList.remove("transitioning");
-  void viewerWrapper.offsetWidth;
-  viewerWrapper.classList.add("transitioning");
-  viewMotionTimeout = window.setTimeout(() => {
-    viewerWrapper.classList.remove("transitioning");
-    viewMotionTimeout = null;
-  }, duration);
-}
 
 function drawMap() {
   mapCtx.clearRect(0, 0, mapMetrics.width, mapMetrics.height);
@@ -1040,6 +1041,10 @@ function init() {
 }
 
 init();
+
+
+
+
 
 
 
