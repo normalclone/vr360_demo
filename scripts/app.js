@@ -913,6 +913,13 @@ function createHotspotElement(fromSceneId, targetConfig) {
   element.className = "hotspot";
   element.dataset.label = targetConfig.title;
   element.setAttribute("aria-label", targetConfig.title);
+
+  const label = document.createElement("span");
+  label.className = "hotspot__label";
+  label.textContent = targetConfig.title;
+  label.setAttribute("aria-hidden", "true");
+  element.appendChild(label);
+
   element.addEventListener("click", () => {
     switchScene(targetConfig.id, { from: fromSceneId });
   });
