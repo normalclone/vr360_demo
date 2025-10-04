@@ -1,0 +1,52 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Street View 360 Demo</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="layout">
+    <aside id="map-panel">
+      <header class="panel-header">
+        <h1>Custom Street View</h1>
+        <p class="panel-subtitle">Select a point on the map or switch to 360&deg;/VR mode to move around.</p>
+      </header>
+      <canvas id="mapCanvas" width="420" height="420" aria-label="Custom map"></canvas>
+      <ul id="locationList" aria-label="Marker list"></ul>
+    </aside>
+    <main id="viewer-panel">
+      <div class="control-bar" role="toolbar" aria-label="View mode controls">
+        <button id="mouseMode" class="control-button active" type="button">View 360 (Mouse)</button>
+        <button id="sensorMode" class="control-button" type="button">Sensor Mode</button>
+        <button id="vrMode" class="control-button" type="button">VR Cardboard</button>
+        <button id="resetView" class="control-button" type="button">Reset View</button>
+      </div>
+      <div id="viewerWrapper">
+        <div id="viewerSingle" class="viewer-layer">
+          <div id="viewer" aria-label="360 viewer"></div>
+        </div>
+        <div id="stereoContainer" class="viewer-layer" aria-hidden="true">
+          <div class="stereo-eye" id="viewerLeft" aria-hidden="true"></div>
+          <div class="stereo-eye" id="viewerRight" aria-hidden="true"></div>
+        </div>
+        <button id="fullscreenToggle" type="button" class="control-button floating standard-only">Fullscreen</button>
+        <button id="fullscreenToggleVrLeft" type="button" class="control-button floating vr-only" aria-hidden="true">Fullscreen</button>
+        <button id="fullscreenToggleVrRight" type="button" class="control-button floating vr-only" aria-hidden="true">Fullscreen</button>
+        <div id="miniMapSlotStandard" class="mini-map-slot standard-only" aria-hidden="true"></div>
+        <div id="miniMapSlotVrLeft" class="mini-map-slot vr-only vr-left" aria-hidden="true"></div>
+        <div id="miniMapSlotVrRight" class="mini-map-slot vr-only vr-right" aria-hidden="true"></div>
+        <div id="vrOverlay" aria-hidden="true"></div>
+      </div>
+      <div id="sceneInfo" aria-live="polite"></div>
+    </main>
+  </div>
+
+  <script src="libs/marzipano.js"></script>
+  <script src="libs/DeviceOrientationControlMethod.js"></script>
+  <script src="libs/WebVrView.js"></script>
+  <script src="scripts/app.js" type="module"></script>
+</body>
+</html>
+
