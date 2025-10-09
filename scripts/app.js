@@ -1,8 +1,6 @@
-﻿const { Viewer, ImageUrlSource, EquirectGeometry, RectilinearView, util } = window.Marzipano;
+import { mapCanvas, mapCtx, mapMetrics, MAP_RANGE, drawMapBase, invalidateMapBaseCache, initializeMapRenderer } from "./mapRenderer.js";
 
-const mapCanvas = document.getElementById("mapCanvas");
-mapCanvas.classList.add("mini-map-canvas");
-const mapCtx = mapCanvas.getContext("2d");
+const { Viewer, ImageUrlSource, EquirectGeometry, RectilinearView, util } = window.Marzipano;
 const viewerWrapper = document.getElementById("viewerWrapper");
 const viewerSingleLayer = document.getElementById("viewerSingle");
 const stereoContainer = document.getElementById("stereoContainer");
@@ -145,36 +143,16 @@ function updateOrientationLockState() {
     refreshViewerLayout();
   }
 }
-const mapMetrics = {
-  padding: 28,
-  width: mapCanvas.width,
-  height: mapCanvas.height,
-  scaleX: 1,
-  scaleY: 1,
-  deviceRatio: typeof window !== "undefined" && Number.isFinite(window.devicePixelRatio) ? window.devicePixelRatio : 1
-};
 
-function invalidateMapBaseCache() {
-  mapBaseCacheCanvas = null;
-}
 
-const MAP_RANGE = { width: 100, height: 100 };
-const MAP_PATH = [
-  { x: 12, y: 24 },
-  { x: 42, y: 18 },
-  { x: 75, y: 34 },
-  { x: 84, y: 60 },
-  { x: 68, y: 82 },
-  { x: 38, y: 74 },
-  { x: 18, y: 52 }
-];
+
 
 const SCENES = [
   {
-    id: "ballroom",
-    title: "Ballroom Interior",
+    id: "office-one",
+    title: "Phòng làm việc 1",
     shortLabel: "A",
-    coords: { x: 22, y: 30 },
+    coords: { x: 32, y: 22 },
     image: "assets/ballroom.jpg",
     northOffset: util.degToRad(0),
     initialView: {
@@ -187,13 +165,13 @@ const SCENES = [
       url: "https://polyhaven.com/a/ballroom",
       license: "CC0 1.0"
     },
-    description: "Description: Indoor event hall, Poly Haven (CC0)."
+    description: "Khu làm việc nhỏ nằm gần cuối hành lang."
   },
   {
-    id: "hangar",
-    title: "Industrial Hangar",
+    id: "meeting-room",
+    title: "Phòng họp",
     shortLabel: "B",
-    coords: { x: 68, y: 38 },
+    coords: { x: 32, y: 56 },
     image: "assets/small_hangar_01.jpg",
     northOffset: util.degToRad(15),
     initialView: {
@@ -206,17 +184,17 @@ const SCENES = [
       url: "https://polyhaven.com/a/small_hangar_01",
       license: "CC0 1.0"
     },
-    description: "Description: Industrial hangar, Poly Haven (CC0)."
+    description: "Không gian họp nằm ngay bên dưới Phòng làm việc 1."
   },
   {
-    id: "kiara",
-    title: "Dawn Meadow",
+    id: "main-office",
+    title: "Phòng làm việc chính",
     shortLabel: "C",
-    coords: { x: 58, y: 78 },
+    coords: { x: 72, y: 46 },
     image: "assets/kiara_1_dawn.jpg",
     northOffset: util.degToRad(-10),
     initialView: {
-      yaw: util.degToRad(120),
+      yaw: util.degToRad(95),
       pitch: util.degToRad(-5),
       fov: util.degToRad(95)
     },
@@ -225,9 +203,10 @@ const SCENES = [
       url: "https://polyhaven.com/a/kiara_1_dawn",
       license: "CC0 1.0"
     },
-    description: "Description: Dawn meadow, Poly Haven (CC0)."
+    description: "Không gian làm việc chính rộng lớn."
   }
 ];
+
 
 const viewer = new Viewer(viewerElement, { useDevicePixelRatio: true });
 const stereoViewers = {
@@ -332,6 +311,8 @@ function scheduleMapDraw() {
     drawMap();
   });
 }
+
+initializeMapRenderer(scheduleMapDraw);
 
 function setMiniMapFullscreenState(enabled) {
   viewerWrapper.classList.toggle("fullscreen-active", Boolean(enabled));
@@ -476,93 +457,9 @@ function disablePseudoFullscreen() {
 function drawMap() {
   mapCtx.clearRect(0, 0, mapMetrics.width, mapMetrics.height);
   drawMapBase();
-  drawPath();
   drawFieldOfView();
   drawMarkers();
   syncMiniMapClones();
-}
-
-
-function drawMapBase() {
-  const metricsChanged =
-    !mapBaseCacheCanvas ||
-    mapBaseCacheMetrics.width !== mapMetrics.width ||
-    mapBaseCacheMetrics.height !== mapMetrics.height ||
-    mapBaseCacheMetrics.padding !== mapMetrics.padding ||
-    mapBaseCacheMetrics.scaleX !== mapMetrics.scaleX ||
-    mapBaseCacheMetrics.scaleY !== mapMetrics.scaleY ||
-    mapBaseCacheMetrics.deviceRatio !== mapMetrics.deviceRatio;
-
-  if (metricsChanged) {
-    mapBaseCacheCanvas = document.createElement("canvas");
-    mapBaseCacheCanvas.width = Math.max(1, Math.round(mapMetrics.width * mapMetrics.deviceRatio));
-    mapBaseCacheCanvas.height = Math.max(1, Math.round(mapMetrics.height * mapMetrics.deviceRatio));
-    const cacheCtx = mapBaseCacheCanvas.getContext("2d");
-    if (cacheCtx) {
-      cacheCtx.scale(mapMetrics.deviceRatio, mapMetrics.deviceRatio);
-      const innerWidth = mapMetrics.width - mapMetrics.padding * 2;
-      const innerHeight = mapMetrics.height - mapMetrics.padding * 2;
-      cacheCtx.fillStyle = "rgba(14, 18, 32, 0.65)";
-      cacheCtx.fillRect(mapMetrics.padding, mapMetrics.padding, innerWidth, innerHeight);
-
-      cacheCtx.strokeStyle = "rgba(255, 255, 255, 0.05)";
-      cacheCtx.lineWidth = 1;
-      const step = 10;
-      for (let x = 0; x <= MAP_RANGE.width; x += step) {
-        const pos = mapMetrics.padding + x * mapMetrics.scaleX;
-        cacheCtx.beginPath();
-        cacheCtx.moveTo(pos, mapMetrics.padding);
-        cacheCtx.lineTo(pos, mapMetrics.height - mapMetrics.padding);
-        cacheCtx.stroke();
-      }
-      for (let y = 0; y <= MAP_RANGE.height; y += step) {
-        const pos = mapMetrics.padding + y * mapMetrics.scaleY;
-        cacheCtx.beginPath();
-        cacheCtx.moveTo(mapMetrics.padding, pos);
-        cacheCtx.lineTo(mapMetrics.width - mapMetrics.padding, pos);
-        cacheCtx.stroke();
-      }
-    }
-    mapBaseCacheMetrics = {
-      width: mapMetrics.width,
-      height: mapMetrics.height,
-      padding: mapMetrics.padding,
-      scaleX: mapMetrics.scaleX,
-      scaleY: mapMetrics.scaleY,
-      deviceRatio: mapMetrics.deviceRatio
-    };
-  }
-
-  if (mapBaseCacheCanvas) {
-    mapCtx.drawImage(mapBaseCacheCanvas, 0, 0, mapMetrics.width, mapMetrics.height);
-  }
-}
-
-function drawPath() {
-  if (MAP_PATH.length === 0) {
-    return;
-  }
-  mapCtx.save();
-  mapCtx.lineCap = "round";
-
-  mapCtx.lineWidth = 10;
-  mapCtx.strokeStyle = "rgba(30, 120, 200, 0.25)";
-  mapCtx.beginPath();
-  MAP_PATH.forEach((point, index) => {
-    const canvasPoint = mapToCanvas(point);
-    if (index === 0) {
-      mapCtx.moveTo(canvasPoint.x, canvasPoint.y);
-    } else {
-      mapCtx.lineTo(canvasPoint.x, canvasPoint.y);
-    }
-  });
-  mapCtx.stroke();
-
-  mapCtx.lineWidth = 4;
-  mapCtx.strokeStyle = "rgba(76, 194, 255, 0.55)";
-  mapCtx.stroke();
-
-  mapCtx.restore();
 }
 
 function drawFieldOfView() {
