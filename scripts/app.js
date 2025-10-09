@@ -1,4 +1,4 @@
-import { mapCanvas, mapCtx, mapMetrics, MAP_RANGE, drawMapBase, invalidateMapBaseCache, initializeMapRenderer } from "./mapRenderer.js";
+﻿import { mapCanvas, mapCtx, mapMetrics, MAP_RANGE, drawMapBase, invalidateMapBaseCache, initializeMapRenderer } from "./mapRenderer.js";
 
 const { Viewer, ImageUrlSource, EquirectGeometry, RectilinearView, util } = window.Marzipano;
 const viewerWrapper = document.getElementById("viewerWrapper");
@@ -149,14 +149,33 @@ function updateOrientationLockState() {
 
 const SCENES = [
   {
-    id: "office-one",
-    title: "Phòng làm việc 1",
+    id: "hall",
+    title: "Hành lang",
     shortLabel: "A",
-    coords: { x: 32, y: 22 },
-    image: "assets/ballroom.jpg",
+     coords: { x: 32, y: 50 },
+    image: "assets/hanh-lang.jpg",
     northOffset: util.degToRad(0),
     initialView: {
-      yaw: util.degToRad(35),
+      yaw: util.degToRad(90),
+      pitch: util.degToRad(0),
+      fov: util.degToRad(95)
+    },
+    credit: {
+      author: "Poly Haven",
+      url: "https://polyhaven.com/a/ballroom",
+      license: "CC0 1.0"
+    },
+    description: "Khu làm việc nhỏ nằm gần cuối hành lang."
+  },
+  {
+    id: "main-office",
+    title: "Phòng làm việc chính",
+    shortLabel: "B",
+    coords: { x: 90, y: 80 },
+    image: "assets/phong-chinh.jpg",
+    northOffset: util.degToRad(0),
+    initialView: {
+      yaw: util.degToRad(275),
       pitch: util.degToRad(0),
       fov: util.degToRad(95)
     },
@@ -170,9 +189,9 @@ const SCENES = [
   {
     id: "meeting-room",
     title: "Phòng họp",
-    shortLabel: "B",
-    coords: { x: 32, y: 56 },
-    image: "assets/small_hangar_01.jpg",
+    shortLabel: "C",
+    coords: { x: 70, y: 56 },
+    image: "assets/phong-hop.jpg",
     northOffset: util.degToRad(15),
     initialView: {
       yaw: util.degToRad(-15),
@@ -187,12 +206,31 @@ const SCENES = [
     description: "Không gian họp nằm ngay bên dưới Phòng làm việc 1."
   },
   {
-    id: "main-office",
-    title: "Phòng làm việc chính",
-    shortLabel: "C",
-    coords: { x: 72, y: 46 },
-    image: "assets/kiara_1_dawn.jpg",
+    id: "first-office",
+    title: "Phòng làm việc 1",
+    shortLabel: "D",
+    coords: { x: 32, y: 80 },
+    image: "assets/phong-1.jpg",
     northOffset: util.degToRad(-10),
+    initialView: {
+      yaw: util.degToRad(95),
+      pitch: util.degToRad(-5),
+      fov: util.degToRad(95)
+    },
+    credit: {
+      author: "Poly Haven",
+      url: "https://polyhaven.com/a/kiara_1_dawn",
+      license: "CC0 1.0"
+    },
+    description: "Không gian làm việc chính rộng lớn."
+  },
+  {
+    id: "second-office",
+    title: "Phòng làm việc 2",
+    shortLabel: "E",
+    coords: { x: 90, y: 60 },
+    image: "assets/phong-2.jpg",
+    northOffset: util.degToRad(90),
     initialView: {
       yaw: util.degToRad(95),
       pitch: util.degToRad(-5),
