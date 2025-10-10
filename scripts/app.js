@@ -191,7 +191,7 @@ const SCENES = [
     title: "Phòng họp",
     shortLabel: "C",
     coords: { x: 30, y: 40 },
-    image: "assets/phong-hop-origin.jpeg",
+    image: "assets/phong-hop.jpeg",
     northOffset: util.degToRad(100),
     initialView: {
       yaw: util.degToRad(250),
