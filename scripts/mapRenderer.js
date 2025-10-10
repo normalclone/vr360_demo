@@ -16,7 +16,7 @@ const mapMetrics = {
   deviceRatio:
     typeof window !== "undefined" && Number.isFinite(window.devicePixelRatio)
       ? window.devicePixelRatio
-      : 1
+      : 1,
 };
 
 // Map coordinate range (0-100) allows scene positions to remain resolution independent.
@@ -36,6 +36,7 @@ const MAP_PATH = [
 const OFFICE_ROOMS = [
   {
     label: "Hành lang",
+    shortLabel: "",
     x: 100 - 0 - 50,
     y: 45, // giữ nguyên
     width: 50,
@@ -46,10 +47,11 @@ const OFFICE_ROOMS = [
       bottom: { color: "rgba(255, 255, 255, 0.18)", width: 1 },
       right: { color: "rgba(255, 255, 255, 0.18)", width: 1 },
     },
-    labelAngle: 0
+    labelAngle: 0,
   },
   {
     label: "",
+    shortLabel: "",
     x: 100 - 50 - 10,
     y: 100 - 35 - 30,
     width: 10,
@@ -62,15 +64,17 @@ const OFFICE_ROOMS = [
   },
   {
     label: "Phòng làm việc chính",
+    shortLabel: "PLVC",
     x: 100 - 50 - 50,
     y: 100 - 65 - 35,
     width: 50,
     height: 35,
     fill: "rgba(44, 72, 116, 0.82)",
-    border: "rgba(120, 180, 255, 0.45)"
+    border: "rgba(120, 180, 255, 0.45)",
   },
   {
     label: "Phòng làm việc 1",
+    shortLabel: "PLV1",
     x: 100 - 18 - 32,
     y: 100 - 65 - 35,
     width: 32,
@@ -80,10 +84,11 @@ const OFFICE_ROOMS = [
       top: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
       bottom: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
       right: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
-    }
+    },
   },
   {
     label: "Ph.Họp",
+    shortLabel: "PH",
     x: 100 - 60 - 15,
     y: 100 - 50 - 15,
     width: 15,
@@ -93,10 +98,11 @@ const OFFICE_ROOMS = [
       top: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
       right: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
       left: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
-    }
+    },
   },
   {
     label: "Ph.Làm việc 2",
+    shortLabel: "PLV2",
     x: 100 - 75 - 25,
     y: 100 - 50 - 15,
     width: 25,
@@ -106,10 +112,11 @@ const OFFICE_ROOMS = [
       top: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
       right: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
       left: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
-    }
+    },
   },
   {
     label: "Trung tâm khác",
+    shortLabel: "",
     x: 100 - 0 - 100,
     y: 100 - 0 - 35,
     width: 100,
@@ -120,10 +127,11 @@ const OFFICE_ROOMS = [
       right: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
       left: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
       bottom: { color: "rgba(120, 180, 255, 0.45)", width: 1 },
-    }
+    },
   },
   {
     label: "Thang máy",
+    shortLabel: "",
     x: 100 - 0 - 50,
     y: 100 - 35 - 10,
     width: 50,
@@ -134,10 +142,11 @@ const OFFICE_ROOMS = [
       right: { color: "rgba(49, 72, 100, 0.45)", width: 1 },
       left: { color: "rgba(49, 72, 100, 0.45)", width: 1 },
       bottom: { color: "rgba(49, 72, 100, 0.45)", width: 1 },
-    }
+    },
   },
   {
     label: "Thang bộ",
+    shortLabel: "",
     x: 100 - 18 - 33,
     y: 100 - 55 - 10,
     width: 33,
@@ -148,10 +157,11 @@ const OFFICE_ROOMS = [
       right: { color: "rgba(49, 72, 100, 0.45)", width: 1 },
       left: { color: "rgba(49, 72, 100, 0.45)", width: 1 },
       bottom: { color: "rgba(49, 72, 100, 0.45)", width: 1 },
-    }
+    },
   },
   {
     label: "WC",
+    shortLabel: "WC",
     x: 100 - 0 - 18,
     y: 100 - 55 - 45,
     width: 18,
@@ -162,10 +172,11 @@ const OFFICE_ROOMS = [
       right: { color: "rgba(49, 72, 100, 0.45)", width: 1 },
       left: { color: "rgba(49, 72, 100, 0.45)", width: 1 },
       bottom: { color: "rgba(49, 72, 100, 0.45)", width: 1 },
-    }
+    },
   },
   {
     label: "Phòng họp TT khác",
+    shortLabel: "",
     x: 100 - 60 - 40,
     y: 100 - 35 - 15,
     width: 40,
@@ -176,7 +187,7 @@ const OFFICE_ROOMS = [
       bottom: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
       right: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
       left: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
-    }
+    },
   },
 ];
 
@@ -188,7 +199,7 @@ let mapBaseCacheMetrics = {
   padding: 0,
   scaleX: 0,
   scaleY: 0,
-  deviceRatio: mapMetrics.deviceRatio
+  deviceRatio: mapMetrics.deviceRatio,
 };
 
 export function initializeMapRenderer(onReady) {
@@ -201,7 +212,7 @@ export function invalidateMapBaseCache() {
   mapBaseCacheCanvas = null;
 }
 
-export function drawMapBase() {
+export function drawMapBase(fullscreenActive = false) {
   const metricsChanged =
     !mapBaseCacheCanvas ||
     mapBaseCacheMetrics.width !== mapMetrics.width ||
@@ -230,7 +241,7 @@ export function drawMapBase() {
 
       drawBackground(cacheCtx, innerWidth, innerHeight);
       drawGrid(cacheCtx, innerWidth, innerHeight);
-      drawRooms(cacheCtx, innerWidth, innerHeight);
+      drawRooms(cacheCtx, innerWidth, innerHeight, fullscreenActive);
       drawCorridorPath(cacheCtx);
     }
 
@@ -240,12 +251,18 @@ export function drawMapBase() {
       padding: mapMetrics.padding,
       scaleX: mapMetrics.scaleX,
       scaleY: mapMetrics.scaleY,
-      deviceRatio: mapMetrics.deviceRatio
+      deviceRatio: mapMetrics.deviceRatio,
     };
   }
 
   if (mapBaseCacheCanvas) {
-    mapCtx.drawImage(mapBaseCacheCanvas, 0, 0, mapMetrics.width, mapMetrics.height);
+    mapCtx.drawImage(
+      mapBaseCacheCanvas,
+      0,
+      0,
+      mapMetrics.width,
+      mapMetrics.height
+    );
   }
 }
 
@@ -287,7 +304,7 @@ function drawGrid(ctx, innerWidth, innerHeight) {
   }
 }
 
-function drawRooms(ctx, innerWidth, innerHeight) {
+function drawRooms(ctx, innerWidth, innerHeight, fullscreenActive = false) {
   OFFICE_ROOMS.forEach((room) => {
     const x = mapMetrics.padding + (room.x / MAP_RANGE.width) * innerWidth;
     const y = mapMetrics.padding + (room.y / MAP_RANGE.height) * innerHeight;
@@ -344,6 +361,7 @@ function drawRooms(ctx, innerWidth, innerHeight) {
 
     // --- Vẽ label ---
     if (room.label) {
+      const labelText = fullscreenActive ? room.shortLabel : room.label;
       const angle = room.labelAngle || 0; // Góc xoay, mặc định 0 (ngang)
       const centerX = x + width / 2;
       const centerY = y + height / 2;
@@ -356,7 +374,7 @@ function drawRooms(ctx, innerWidth, innerHeight) {
       ctx.font = "600 13px 'Segoe UI', Arial, sans-serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(room.label, 0, 0);
+      ctx.fillText(labelText, 0, 0);
 
       ctx.restore();
     }
@@ -395,7 +413,7 @@ function drawCorridorPath(ctx) {
 function mapToCanvas(point) {
   return {
     x: mapMetrics.padding + point.x * mapMetrics.scaleX,
-    y: mapMetrics.padding + point.y * mapMetrics.scaleY
+    y: mapMetrics.padding + point.y * mapMetrics.scaleY,
   };
 }
 

@@ -144,9 +144,6 @@ function updateOrientationLockState() {
   }
 }
 
-
-
-
 const SCENES = [
   {
     id: "hall",
@@ -494,7 +491,7 @@ function disablePseudoFullscreen() {
 
 function drawMap() {
   mapCtx.clearRect(0, 0, mapMetrics.width, mapMetrics.height);
-  drawMapBase();
+  drawMapBase(fullscreenActive);
   drawFieldOfView();
   drawMarkers();
   syncMiniMapClones();
