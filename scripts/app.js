@@ -1,4 +1,4 @@
-import { mapCanvas, mapCtx, mapMetrics, MAP_RANGE, drawMapBase, invalidateMapBaseCache, initializeMapRenderer } from "./mapRenderer.js";
+﻿import { mapCanvas, mapCtx, mapMetrics, MAP_RANGE, drawMapBase, invalidateMapBaseCache, initializeMapRenderer } from "./mapRenderer.js";
 
 const { Viewer, ImageUrlSource, EquirectGeometry, RectilinearView, util } = window.Marzipano;
 const viewerWrapper = document.getElementById("viewerWrapper");
@@ -149,14 +149,33 @@ function updateOrientationLockState() {
 
 const SCENES = [
   {
-    id: "office-one",
-    title: "Phòng làm việc 1",
+    id: "hall",
+    title: "Hành lang",
     shortLabel: "A",
-    coords: { x: 32, y: 22 },
-    image: "assets/ballroom.jpg",
+     coords: { x: 50, y: 50 },
+    image: "assets/hanh-lang-origin.jpg",
     northOffset: util.degToRad(0),
     initialView: {
-      yaw: util.degToRad(35),
+      yaw: util.degToRad(270),
+      pitch: util.degToRad(0),
+      fov: util.degToRad(95)
+    },
+    credit: {
+      author: "Poly Haven",
+      url: "https://polyhaven.com/a/ballroom",
+      license: "CC0 1.0"
+    },
+    description: "Khu làm việc nhỏ nằm gần cuối hành lang."
+  },
+  {
+    id: "main-office",
+    title: "Phòng làm việc chính",
+    shortLabel: "B",
+    coords: { x: 20, y: 20 },
+    image: "assets/phong-chinh-origin.jpeg",
+    northOffset: util.degToRad(0),
+    initialView: {
+      yaw: util.degToRad(275),
       pitch: util.degToRad(0),
       fov: util.degToRad(95)
     },
@@ -170,12 +189,12 @@ const SCENES = [
   {
     id: "meeting-room",
     title: "Phòng họp",
-    shortLabel: "B",
-    coords: { x: 32, y: 56 },
-    image: "assets/small_hangar_01.jpg",
-    northOffset: util.degToRad(15),
+    shortLabel: "C",
+    coords: { x: 30, y: 40 },
+    image: "assets/phong-hop-origin.jpeg",
+    northOffset: util.degToRad(100),
     initialView: {
-      yaw: util.degToRad(-15),
+      yaw: util.degToRad(250),
       pitch: util.degToRad(0),
       fov: util.degToRad(95)
     },
@@ -187,12 +206,31 @@ const SCENES = [
     description: "Không gian họp nằm ngay bên dưới Phòng làm việc 1."
   },
   {
-    id: "main-office",
-    title: "Phòng làm việc chính",
-    shortLabel: "C",
-    coords: { x: 72, y: 46 },
-    image: "assets/kiara_1_dawn.jpg",
+    id: "first-office",
+    title: "Phòng làm việc 1",
+    shortLabel: "D",
+    coords: { x: 60, y: 10 },
+    image: "assets/phong-1-origin.jpeg",
     northOffset: util.degToRad(-10),
+    initialView: {
+      yaw: util.degToRad(260),
+      pitch: util.degToRad(-5),
+      fov: util.degToRad(95)
+    },
+    credit: {
+      author: "Poly Haven",
+      url: "https://polyhaven.com/a/kiara_1_dawn",
+      license: "CC0 1.0"
+    },
+    description: "Không gian làm việc chính rộng lớn."
+  },
+  {
+    id: "second-office",
+    title: "Phòng làm việc 2",
+    shortLabel: "E",
+    coords: { x: 10, y: 40 },
+    image: "assets/phong-2-origin.jpeg",
+    northOffset: util.degToRad(270),
     initialView: {
       yaw: util.degToRad(95),
       pitch: util.degToRad(-5),
