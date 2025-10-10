@@ -36,34 +36,34 @@ const MAP_PATH = [
 const OFFICE_ROOMS = [
   {
     label: "Hành lang",
-    x: 0,
-    y: 45,
+    x: 100 - 0 - 50,
+    y: 45, // giữ nguyên
     width: 50,
     height: 10,
     fill: "rgba(36, 46, 66, 0.88)",
     border: {
       top: { color: "rgba(255, 255, 255, 0.18)", width: 1 },
       bottom: { color: "rgba(255, 255, 255, 0.18)", width: 1 },
-      left: { color: "rgba(255, 255, 255, 0.18)", width: 1 },
+      right: { color: "rgba(255, 255, 255, 0.18)", width: 1 },
     },
     labelAngle: 0
   },
   {
     label: "",
-    x: 50,
-    y: 35,
+    x: 100 - 50 - 10,
+    y: 100 - 35 - 30,
     width: 10,
     height: 30,
     fill: "rgba(36, 46, 66, 0.88)",
     border: {
       top: { color: "rgba(255, 255, 255, 0.18)", width: 1 },
-      right: { color: "rgba(255, 255, 255, 0.18)", width: 1 },
+      left: { color: "rgba(255, 255, 255, 0.18)", width: 1 },
     },
   },
   {
     label: "Phòng làm việc chính",
-    x: 50,
-    y: 65,
+    x: 100 - 50 - 50,
+    y: 100 - 65 - 35,
     width: 50,
     height: 35,
     fill: "rgba(44, 72, 116, 0.82)",
@@ -71,110 +71,111 @@ const OFFICE_ROOMS = [
   },
   {
     label: "Phòng làm việc 1",
-    x: 18,
-    y: 65,
+    x: 100 - 18 - 32,
+    y: 100 - 65 - 35,
     width: 32,
     height: 35,
     fill: "rgba(52, 84, 134, 0.82)",
     border: {
       top: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
       bottom: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
-      left: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
+      right: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
     }
   },
   {
     label: "Ph.Họp",
-    x: 60,
-    y: 50,
+    x: 100 - 60 - 15,
+    y: 100 - 50 - 15,
     width: 15,
     height: 15,
     fill: "rgba(52, 84, 134, 0.82)",
     border: {
       top: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
-      left: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
       right: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
+      left: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
     }
   },
   {
     label: "Ph.Làm việc 2",
-    x: 75,
-    y: 50,
+    x: 100 - 75 - 25,
+    y: 100 - 50 - 15,
     width: 25,
     height: 15,
     fill: "rgba(52, 84, 134, 0.82)",
     border: {
       top: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
-      left: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
       right: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
+      left: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
     }
   },
   {
     label: "Trung tâm khác",
-    x: 0,
-    y: 0,
+    x: 100 - 0 - 100,
+    y: 100 - 0 - 35,
     width: 100,
     height: 35,
     fill: "rgba(52, 84, 134, 0.82)",
     border: {
       top: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
-      left: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
       right: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
+      left: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
       bottom: { color: "rgba(120, 180, 255, 0.45)", width: 1 },
     }
   },
   {
     label: "Thang máy",
-    x: 0,
-    y: 35,
+    x: 100 - 0 - 50,
+    y: 100 - 35 - 10,
     width: 50,
     height: 10,
     fill: "rgba(23, 37, 59, 0.82)",
     border: {
       top: { color: "rgba(49, 72, 100, 0.45)", width: 1 },
-      left: { color: "rgba(49, 72, 100, 0.45)", width: 1 },
       right: { color: "rgba(49, 72, 100, 0.45)", width: 1 },
+      left: { color: "rgba(49, 72, 100, 0.45)", width: 1 },
       bottom: { color: "rgba(49, 72, 100, 0.45)", width: 1 },
     }
   },
   {
     label: "Thang bộ",
-    x: 18,
-    y: 55,
+    x: 100 - 18 - 33,
+    y: 100 - 55 - 10,
     width: 33,
     height: 10,
     fill: "rgba(23, 37, 59, 0.82)",
     border: {
       top: { color: "rgba(49, 72, 100, 0.45)", width: 1 },
-      left: { color: "rgba(49, 72, 100, 0.45)", width: 1 },
       right: { color: "rgba(49, 72, 100, 0.45)", width: 1 },
+      left: { color: "rgba(49, 72, 100, 0.45)", width: 1 },
       bottom: { color: "rgba(49, 72, 100, 0.45)", width: 1 },
     }
   },
   {
     label: "WC",
-    x: 0,
-    y: 55,
+    x: 100 - 0 - 18,
+    y: 100 - 55 - 45,
     width: 18,
     height: 45,
     fill: "rgba(23, 37, 59, 0.82)",
     border: {
       top: { color: "rgba(49, 72, 100, 0.45)", width: 1 },
-      left: { color: "rgba(49, 72, 100, 0.45)", width: 1 },
       right: { color: "rgba(49, 72, 100, 0.45)", width: 1 },
+      left: { color: "rgba(49, 72, 100, 0.45)", width: 1 },
       bottom: { color: "rgba(49, 72, 100, 0.45)", width: 1 },
     }
   },
   {
     label: "Phòng họp TT khác",
-    x: 60,
-    y: 35,
+    x: 100 - 60 - 40,
+    y: 100 - 35 - 15,
     width: 40,
     height: 15,
     fill: "rgba(52, 84, 134, 0.82)",
     border: {
+      top: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
       bottom: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
-      left: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
       right: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
+      left: { color: "rgba(120, 180, 255, 0.45)", width: 2 },
     }
   },
 ];
